@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wpfGL", "wpfGL\wpfGL.csproj", "{8073490C-6844-4955-B839-8C1605894F8E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GISControlWPFGL2", "GISControlWPFGL2\GISControlWPFGL2.csproj", "{11673958-36BA-4E5C-BD17-7E4443F7319A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WPFTest", "WPFTest\WPFTest.csproj", "{5505A12B-45E4-4DA0-B80E-9D38F77266F2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8073490C-6844-4955-B839-8C1605894F8E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8073490C-6844-4955-B839-8C1605894F8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8073490C-6844-4955-B839-8C1605894F8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8073490C-6844-4955-B839-8C1605894F8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{11673958-36BA-4E5C-BD17-7E4443F7319A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{11673958-36BA-4E5C-BD17-7E4443F7319A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{11673958-36BA-4E5C-BD17-7E4443F7319A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{11673958-36BA-4E5C-BD17-7E4443F7319A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5505A12B-45E4-4DA0-B80E-9D38F77266F2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5505A12B-45E4-4DA0-B80E-9D38F77266F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5505A12B-45E4-4DA0-B80E-9D38F77266F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5505A12B-45E4-4DA0-B80E-9D38F77266F2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
