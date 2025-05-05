@@ -6,9 +6,9 @@ namespace GISControlWPFGL2
 {
     public class Camera
     {
-        public Camera(Vector3 positionLLA)
+        public Camera(Vector3 position)
         {
-            UpdateCameraLLA(positionLLA);
+            UpdateCamera(position);
         }
 
         private Vector3 _front = -Vector3.UnitZ;
@@ -17,7 +17,6 @@ namespace GISControlWPFGL2
         private float _fov = MathHelper.PiOver2;
 
         public Vector3 Position { get; set; } = Vector3.UnitZ * 10;
-        public Vector3 PositionLLA { get; set; } = Vector3.Zero;
         public float AspectRatio { get; set; } = 1.0F;
         public Vector3 Front => _front;
         public Vector3 Up => _up;
@@ -32,6 +31,8 @@ namespace GISControlWPFGL2
             }
         }
         public const float ZoomFactor = 1.1F;
+        public const float MinViewR = 1000.0F;
+        public const float MaxViewR = 10000000.0F;
         public Vector3 DragStartPosition = Vector3.Zero;
         public Matrix4 DragStartVPMatrix = Matrix4.Zero;
         public Vector3 DragPrevSurface = Vector3.Zero;
@@ -42,23 +43,15 @@ namespace GISControlWPFGL2
         }
         public Matrix4 GetProjectionMatrix()
         {
-            return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, 1f, 50000000f);
+            return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, MinViewR, MaxViewR);
         }
-        public void UpdateCameraLLA(Vector3 NewPositionLLA)
-        {
-            PositionLLA = NewPositionLLA;
-            Position = (Vector3)(Vector3d)GeodeticConverter.LLAtoECEF(PositionLLA);
-            _front = Vector3.Normalize(-Position);
-            _right = Vector3.Normalize(Vector3.Cross(_front, Vector3.UnitZ));
-            _up = Vector3.Normalize(Vector3.Cross(_right, _front));
-        }
-        public void UpdateCameraECEF(Vector3 NewPosition)
+        public void UpdateCamera(Vector3 NewPosition)
         {
             Position = NewPosition;
-            PositionLLA = (Vector3)(Vector3d)GeodeticConverter.ECEFtoLLA(Position);
             _front = Vector3.Normalize(-Position);
             _right = Vector3.Normalize(Vector3.Cross(_front, Vector3.UnitZ));
             _up = Vector3.Normalize(Vector3.Cross(_right, _front));
+            Debug.WriteLine(_up);
         }
     }
 }

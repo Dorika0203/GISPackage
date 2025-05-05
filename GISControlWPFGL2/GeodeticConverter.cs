@@ -5,10 +5,10 @@ namespace GISControlWPFGL2
     public static class GeodeticConverter
     {
         // WGS84 constants
-        private static readonly double a = 6378137.0;                 // 반장축
-        private static readonly double f = 1 / 298.257223563;         // 편평률
-        private static readonly double e2 = f * (2 - f);              // 이심률 제곱
-        private static readonly double b = a * (1 - f);               // 반단축
+        public static readonly double EarthA = 6378137.0;                      // 반장축
+        public static readonly double EarthF = 1 / 298.257223563;              // 편평률
+        public static readonly double e2 = EarthF * (2 - EarthF);              // 이심률 제곱
+        public static readonly double b = EarthA * (1 - EarthF);               // 반단축
 
         // LLA to ECEF
         public static (double, double, double) LLAtoECEF(Vector3d LLA)
@@ -22,7 +22,7 @@ namespace GISControlWPFGL2
             double sinLon = Math.Sin(lon);
             double cosLon = Math.Cos(lon);
 
-            double N = a / Math.Sqrt(1 - e2 * sinLat * sinLat);
+            double N = EarthA / Math.Sqrt(1 - e2 * sinLat * sinLat);
 
             double x = (N + alt) * cosLat * cosLon;
             double y = (N + alt) * cosLat * sinLon;
@@ -34,20 +34,20 @@ namespace GISControlWPFGL2
         // ECEF to LLA
         public static (double, double, double) ECEFtoLLA(Vector3d ecef)
         {
-            double ePrime2 = (a * a - b * b) / (b * b);
+            double ePrime2 = (EarthA * EarthA - b * b) / (b * b);
             double p = Math.Sqrt(ecef.X * ecef.X + ecef.Y * ecef.Y);
-            double theta = Math.Atan2(ecef.Z * a, p * b);
+            double theta = Math.Atan2(ecef.Z * EarthA, p * b);
 
             double sinTheta = Math.Sin(theta);
             double cosTheta = Math.Cos(theta);
 
             double lat = Math.Atan2(ecef.Z + ePrime2 * b * sinTheta * sinTheta * sinTheta,
-                                    p - e2 * a * cosTheta * cosTheta * cosTheta);
+                                    p - e2 * EarthA * cosTheta * cosTheta * cosTheta);
 
             double lon = Math.Atan2(ecef.Y, ecef.X);
 
             double sinLat = Math.Sin(lat);
-            double N = a / Math.Sqrt(1 - e2 * sinLat * sinLat);
+            double N = EarthA / Math.Sqrt(1 - e2 * sinLat * sinLat);
             double alt = p / Math.Cos(lat) - N;
 
             // 변환
@@ -62,9 +62,9 @@ namespace GISControlWPFGL2
             double ox = cameraPos.X, oy = cameraPos.Y, oz = cameraPos.Z;
             double dx = direction.X, dy = direction.Y, dz = direction.Z;
 
-            double A = (dx * dx + dy * dy) / (a * a) + (dz * dz) / (b * b);
-            double B = 2.0 * ((ox * dx + oy * dy) / (a * a) + (oz * dz) / (b * b));
-            double C = (ox * ox + oy * oy) / (a * a) + (oz * oz) / (b * b) - 1.0;
+            double A = (dx * dx + dy * dy) / (EarthA * EarthA) + (dz * dz) / (b * b);
+            double B = 2.0 * ((ox * dx + oy * dy) / (EarthA * EarthA) + (oz * dz) / (b * b));
+            double C = (ox * ox + oy * oy) / (EarthA * EarthA) + (oz * oz) / (b * b) - 1.0;
 
             double discriminant = B * B - 4 * A * C;
 

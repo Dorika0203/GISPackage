@@ -147,8 +147,9 @@ namespace GISControlWPFGL2
 
             // 지도 데이터에서 읽은 점 중 하나로 카메라 설정
             var posInit = MapRings[0].listLLA[0];
-            posInit.Z = 5000000F;
-            camera = new Camera(posInit);
+            posInit.Z = 1000000;
+            var posInitECEF = (Vector3)(Vector3d)GeodeticConverter.LLAtoECEF(posInit);
+            camera = new Camera(posInitECEF);
 
             // Vertex Array Object, Vertex Buffer Object 생성
             posLocation = GL.GetAttribLocation(Program, "vPosition");
@@ -234,11 +235,8 @@ namespace GISControlWPFGL2
 
                 var rotMatrix = Matrix4.CreateFromAxisAngle(Vector3.Cross((Vector3)vec2, vec1), rotAngle);
                 var newCameraPosition = (new Vector4(camera.Position, 1.0F) * rotMatrix).Xyz;
-                camera.UpdateCameraECEF(newCameraPosition);
+                camera.UpdateCamera(newCameraPosition);
                 camera.DragPrevSurface = (Vector3)surface;
-
-                var debugtemp = camera.PositionLLA;
-                Debug.WriteLine($"[M]: {debugtemp} => {camera.PositionLLA} : {rotAngleDeg}");
             }
         }
 
@@ -270,18 +268,22 @@ namespace GISControlWPFGL2
 
         private void OpenTKControl_MouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
         {
-            Vector3 newCameraPositionLLA = camera.PositionLLA;
+            var posSurf = camera.Position;
+            posSurf.Normalize();
+            posSurf = posSurf * (float)GeodeticConverter.EarthA;
+            var posDelta = camera.Position - posSurf;
+
             if (e.Delta < 0)
             {
-                var alt = newCameraPositionLLA.Z * Camera.ZoomFactor;
-                newCameraPositionLLA.Z = MathF.Min(alt, 5000000F);
+                posDelta *= 1.1F;
+                if(posDelta.Length > Camera.MaxViewR) { posDelta /= 1.05F; }
             }
             else
             {
-                var alt = newCameraPositionLLA.Z / Camera.ZoomFactor;
-                newCameraPositionLLA.Z = MathF.Max(alt, 100F);
+                posDelta /= 1.1F;
+                if (posDelta.Length < Camera.MinViewR) { posDelta *= 1.05F; }
             }
-            camera.UpdateCameraLLA(newCameraPositionLLA);
+            camera.UpdateCamera(posDelta + posSurf);
         }
     }
 
