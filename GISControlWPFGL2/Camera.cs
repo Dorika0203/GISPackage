@@ -16,25 +16,18 @@ namespace GISControlWPFGL2
         {
             Position = position;
             _front = Vector3.Normalize(-Position);
-            _right = Vector3.Normalize(Vector3.Cross(_front, Vector3.UnitX));
+            _right = Vector3.Normalize(Vector3.Cross(_front, Vector3.UnitZ));
             _up = Vector3.Normalize(Vector3.Cross(_right, _front));
             AspectRatio = aspectRatio;
-
-            var lla = GeodeticConverter<float>.ECEFtoLLA(position.X, position.Y, position.Z);
-            PositionLLA = new Vector3(GeodeticConverter<float>.ECEFtoLLA(lla.LatitudeDeg, lla.LongitudeDeg, lla.AltitudeMeters));
         }
         public Camera()
         {
             Position = Vector3.UnitZ * 10;
-            _front = Vector3.Normalize(-Position);
-            _right = Vector3.Normalize(Vector3.Cross(_front, Vector3.UnitY));
-            _up = Vector3.Normalize(Vector3.Cross(_right, _front));
             AspectRatio = 1.0F;
         }
 
         // The position of the camera
-        public Vector3 Position { get; set; }
-        public Vector3 PositionLLA { get; set; }
+        public Vector3 Position { get; set; } = Vector3.UnitZ * 10;
 
         // This is simply the aspect ratio of the viewport, used for the projection matrix.
         public float AspectRatio { get; set; }

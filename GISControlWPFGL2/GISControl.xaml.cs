@@ -3,7 +3,6 @@ using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using System.Diagnostics;
 using System.IO;
-using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 
@@ -122,7 +121,7 @@ namespace GISControlWPFGL2
                                     ring.listECEF.Add(new Vector3((float)ecef.X, (float)ecef.Y, (float)ecef.Z));
                                 }
                                 // vertex buffer object의 메모리 인덱스 추가
-                                if(MapRings.Count > 0)
+                                if (MapRings.Count > 0)
                                 {
                                     ring.memoryOffset = MapRings.Last().memoryOffset + MapRings.Last().listECEF.Count * Unsafe.SizeOf<Vector3>();
                                     ring.vertexOffset = MapRings.Last().vertexOffset + MapRings.Last().listECEF.Count;
