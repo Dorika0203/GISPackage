@@ -7,7 +7,7 @@
         xmlns:GISControlWPFGL2="clr-namespace:GISControlWPFGL2;assembly=GISControlWPFGL2" x:Class="WPFTest.MainWindow"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
+    <Grid Margin="10,10,10,10">
         <GISControlWPFGL2:GISControl/>
     </Grid>
 </Window>

@@ -11,6 +11,10 @@
         <glWpfControl:GLWpfControl x:Name="OpenTKControl"
                                    Render="OpenTKControl_Render"
                                    SizeChanged="OpenTKControl_SizeChanged"
-                                   Loaded="OpenTKControl_Loaded"/>
+                                   MouseMove="OpenTKControl_MouseMove"
+                                   MouseLeftButtonDown="OpenTKControl_MouseLeftButtonDown"
+                                   MouseLeftButtonUp="OpenTKControl_MouseLeftButtonUp"
+                                   MouseWheel="OpenTKControl_MouseWheel"
+                                   />
     </Grid>
 </UserControl>

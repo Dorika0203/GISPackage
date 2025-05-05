@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace GISControlWPFGL2
 {
@@ -13,14 +14,14 @@ namespace GISControlWPFGL2
         public int memoryOffset;              // vertex buffer object에서 현재 객체 Ring의 인덱스
         public int vertexOffset;
         public List<Vector3> listECEF;  // vertex 리스트 (ECEF)
-        public List<Vector2> listLL;    // 참조용 위경도 리스트
+        public List<Vector3> listLLA;    // 참조용 위경도 리스트
         public Color4 Color;            // ring 색깔
         public Ring()
         {
             memoryOffset = 0;
             vertexOffset = 0;
-            listLL = new List<Vector2>();
-            listECEF = new List<Vector3>();
+            listLLA = [];
+            listECEF = [];
             Color = Color4.White;
         }
     }
@@ -30,22 +31,22 @@ namespace GISControlWPFGL2
     /// </summary>
     public partial class GISControl : UserControl
     {
-        private int Program;
-        private int VAO;
-        private int VBO;
+        private readonly int Program;
+        private readonly int VAO;
+        private readonly int VBO;
 
         private static readonly string VertexShaderSourcePath = "./Shader/shader.vert";
         private static readonly string FragmentShaderSourcePath = "./Shader/shader.frag";
 
         // Vertex Array Object, Vertex Buffer Object 생성
-        private int posLocation;
-        private int colorLocation;
-        private int modelLocation;
-        private int viewLocation;
-        private int projLocation;
+        private readonly int posLocation;
+        private readonly int colorLocation;
+        private readonly int modelLocation;
+        private readonly int viewLocation;
+        private readonly int projLocation;
 
-        private Camera camera;
-        List<Ring> MapRings = new List<Ring>();
+        private readonly Camera camera;
+        private readonly List<Ring> MapRings = [];
 
         public GISControl()
         {
@@ -101,7 +102,7 @@ namespace GISControlWPFGL2
             // 지도(.shp) 읽기 및 ECEF 변환
             foreach (string file in Directory.EnumerateFiles("./shp", "*.shp", SearchOption.AllDirectories))
             {
-                Shapefile shapefile = new Shapefile(file);
+                Shapefile shapefile = new(file);
                 foreach (Shape shape in shapefile)
                 {
                     switch (shape.Type)
@@ -110,15 +111,15 @@ namespace GISControlWPFGL2
                             Debug.WriteLine(Enum.GetName<ShapeType>(shape.Type));
                             break;
                         case ShapeType.Polygon:
-                            ShapePolygon shapePolygon = shape as ShapePolygon;
+                            if (shape is not ShapePolygon shapePolygon) break;
                             foreach (PointD[] part in shapePolygon.Parts)
                             {
-                                Ring ring = new Ring();
+                                Ring ring = new();
                                 foreach (PointD point in part)
                                 {
-                                    ring.listLL.Add(new Vector2((float)point.Y, (float)point.X));
-                                    var ecef = GeodeticConverter<double>.LLAtoECEF(point.Y, point.X, 0);
-                                    ring.listECEF.Add(new Vector3((float)ecef.X, (float)ecef.Y, (float)ecef.Z));
+                                    ring.listLLA.Add(new Vector3((float)point.Y, (float)point.X, 0));
+                                    Vector3 ecef = (Vector3)(Vector3d)GeodeticConverter.LLAtoECEF((point.Y, point.X, 0));
+                                    ring.listECEF.Add(ecef);
                                 }
                                 // vertex buffer object의 메모리 인덱스 추가
                                 if (MapRings.Count > 0)
@@ -145,9 +146,9 @@ namespace GISControlWPFGL2
             }
 
             // 지도 데이터에서 읽은 점 중 하나로 카메라 설정
-            var tmpLL = MapRings[0].listLL[0];
-            var tmpECEF = GeodeticConverter<float>.LLAtoECEF(tmpLL.X, tmpLL.Y, 5000000f);
-            camera = new Camera(tmpECEF, 1);
+            var posInit = MapRings[0].listLLA[0];
+            posInit.Z = 5000000F;
+            camera = new Camera(posInit);
 
             // Vertex Array Object, Vertex Buffer Object 생성
             posLocation = GL.GetAttribLocation(Program, "vPosition");
@@ -178,7 +179,6 @@ namespace GISControlWPFGL2
             GL.ClearColor(Color4.Black);
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.UseProgram(Program);
-            //GL.LineWidth(2);
 
             Matrix4 ModelMatrix = Matrix4.Identity;
             GL.UniformMatrix4(modelLocation, false, ref ModelMatrix);
@@ -196,13 +196,92 @@ namespace GISControlWPFGL2
             }
         }
 
-        private void OpenTKControl_Loaded(object sender, System.Windows.RoutedEventArgs e)
-        {
-        }
-
         private void OpenTKControl_SizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
         {
             camera.AspectRatio = (float)(OpenTKControl.ActualWidth / OpenTKControl.ActualHeight);
+        }
+
+        private void OpenTKControl_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if(e.LeftButton == MouseButtonState.Pressed)
+            {
+                if (camera.DragPrevSurface == Vector3.Zero) return;
+                if (camera.DragStartVPMatrix == Matrix4.Zero) return;
+
+                var mousePos = e.GetPosition(this);
+
+                Vector3 NDC;
+                NDC.X = (float)((mousePos.X - (OpenTKControl.ActualWidth / 2.0F)) / (OpenTKControl.ActualWidth / 2.0F));
+                NDC.Y = -1.0F * (float)((mousePos.Y - (OpenTKControl.ActualHeight / 2.0F)) / (OpenTKControl.ActualHeight / 2.0F));
+                NDC.Z = 0.01F;
+                var pointOnRay = Vector3.Unproject(NDC, -1, -1, 2, 2, -1, 1, Matrix4.Invert(camera.DragStartVPMatrix));
+                Vector3 rayDirection = pointOnRay - camera.DragStartPosition;
+                var surface = GeodeticConverter.FindIntersectionWGS84(camera.DragStartPosition, rayDirection);
+
+                if (surface == Vector3.Zero) return;
+
+                var vec1 = -camera.DragPrevSurface;
+                var vec2 = -surface;
+                vec1.Normalize();
+                vec2.Normalize();
+                var rotAngle = Vector3.CalculateAngle(vec1, ((Vector3)vec2));
+                var rotAngleDeg = rotAngle * 180.0F / float.Pi;
+
+                if (rotAngleDeg < 0.00001F)
+                {
+                    return;
+                }
+
+                var rotMatrix = Matrix4.CreateFromAxisAngle(Vector3.Cross((Vector3)vec2, vec1), rotAngle);
+                var newCameraPosition = (new Vector4(camera.Position, 1.0F) * rotMatrix).Xyz;
+                camera.UpdateCameraECEF(newCameraPosition);
+                camera.DragPrevSurface = (Vector3)surface;
+
+                var debugtemp = camera.PositionLLA;
+                Debug.WriteLine($"[M]: {debugtemp} => {camera.PositionLLA} : {rotAngleDeg}");
+            }
+        }
+
+        private void OpenTKControl_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            var mousePos = e.GetPosition(this);
+
+            Vector3 NDC;
+            NDC.X = (float)((mousePos.X - (OpenTKControl.ActualWidth / 2.0F)) / (OpenTKControl.ActualWidth / 2.0F));
+            NDC.Y = -1.0F * (float)((mousePos.Y - (OpenTKControl.ActualHeight / 2.0F)) / (OpenTKControl.ActualHeight / 2.0F));
+            NDC.Z = 0.01F;
+            var temp = Vector3.Unproject(NDC, -1, -1, 2, 2, -1, 1, Matrix4.Invert(camera.GetViewMatrix() * camera.GetProjectionMatrix()));
+
+            Vector3 rayDir = temp - camera.Position;
+            var surface = GeodeticConverter.FindIntersectionWGS84(camera.Position, rayDir);
+            if (surface == Vector3.Zero) return;
+
+            camera.DragStartVPMatrix = camera.GetViewMatrix() * camera.GetProjectionMatrix();
+            camera.DragStartPosition = camera.Position;
+            camera.DragPrevSurface = (Vector3)surface;
+        }
+
+        private void OpenTKControl_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            camera.DragStartVPMatrix = Matrix4.Zero;
+            camera.DragStartPosition = Vector3.Zero;
+            camera.DragPrevSurface = Vector3.Zero;
+        }
+
+        private void OpenTKControl_MouseWheel(object sender, System.Windows.Input.MouseWheelEventArgs e)
+        {
+            Vector3 newCameraPositionLLA = camera.PositionLLA;
+            if (e.Delta < 0)
+            {
+                var alt = newCameraPositionLLA.Z * Camera.ZoomFactor;
+                newCameraPositionLLA.Z = MathF.Min(alt, 5000000F);
+            }
+            else
+            {
+                var alt = newCameraPositionLLA.Z / Camera.ZoomFactor;
+                newCameraPositionLLA.Z = MathF.Max(alt, 100F);
+            }
+            camera.UpdateCameraLLA(newCameraPositionLLA);
         }
     }
 
