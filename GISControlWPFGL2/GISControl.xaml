@@ -9,6 +9,8 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <glWpfControl:GLWpfControl x:Name="OpenTKControl"
-                                   Render="OpenTKControl_Render" SizeChanged="OpenTKControl_SizeChanged"/>
+                                   Render="OpenTKControl_Render"
+                                   SizeChanged="OpenTKControl_SizeChanged"
+                                   Loaded="OpenTKControl_Loaded"/>
     </Grid>
 </UserControl>

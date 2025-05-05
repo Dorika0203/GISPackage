@@ -361,3 +361,11 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# 지도 파일 무시 추가
+*.zip
+*.cpg
+*.dbf
+*.prj
+*.shp
+*.shx

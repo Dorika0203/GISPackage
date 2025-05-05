@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +14,7 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy &quot;$(SolutionDir)GISControlWPFGL2\Shader\*&quot; &quot;$(TargetDir)Shader\&quot; /E /Y /I" />
+    <Exec Command="xcopy &quot;$(SolutionDir)GISControlWPFGL2\Shader\*&quot; &quot;$(TargetDir)Shader\&quot; /E /Y /I&#xD;&#xA;xcopy &quot;$(SolutionDir)GISControlWPFGL2\shp\*&quot; &quot;$(TargetDir)shp\&quot; /E /Y /I" />
   </Target>
 
 </Project>
