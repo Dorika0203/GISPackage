@@ -52,6 +52,7 @@ namespace GISControlWPFGL2
         {
             InitializeComponent();
             OpenTKControl.Start();
+            OpenTKControl.Settings.RenderContinuously = true;
             Program = GL.CreateProgram();
 
             #region Vertex Shader
@@ -100,7 +101,7 @@ namespace GISControlWPFGL2
             #endregion
 
             // 지도(.shp) 읽기 및 ECEF 변환
-            foreach (string file in Directory.EnumerateFiles("./shp", "*.shp", SearchOption.AllDirectories))
+            foreach (string file in Directory.EnumerateFiles("./shp", "*_0.shp", SearchOption.AllDirectories))
             {
                 Shapefile shapefile = new(file);
                 foreach (Shape shape in shapefile)
@@ -187,7 +188,7 @@ namespace GISControlWPFGL2
             GL.UniformMatrix4(viewLocation, false, ref ViewMatrix);
             Matrix4 ProjectionMatrix = camera.GetProjectionMatrix();
             GL.UniformMatrix4(projLocation, false, ref ProjectionMatrix);
-            GL.Uniform4(colorLocation, Color4.White);
+            GL.Uniform4(colorLocation, Color4.Red);
 
             GL.BindVertexArray(VAO);
 
@@ -232,11 +233,19 @@ namespace GISControlWPFGL2
                 {
                     return;
                 }
-
                 var rotMatrix = Matrix4.CreateFromAxisAngle(Vector3.Cross((Vector3)vec2, vec1), rotAngle);
                 var newCameraPosition = (new Vector4(camera.Position, 1.0F) * rotMatrix).Xyz;
+                var cameraPosPrev = camera.Position;
                 camera.UpdateCamera(newCameraPosition);
                 camera.DragPrevSurface = (Vector3)surface;
+
+                var debug1 = camera.Position - cameraPosPrev;
+                var debug2 = (Vector3d)(GeodeticConverter.ECEFtoLLA(camera.Position) - (Vector3d)GeodeticConverter.ECEFtoLLA(cameraPosPrev));
+                var debug3 = camera.Position;
+                var debug4 = (Vector3d)(GeodeticConverter.ECEFtoLLA(camera.Position));
+
+                //Debug.WriteLine($"{debug1.X}, {debug1.Y}, {debug1.Z}, {debug2.X}, {debug2.Y}, {debug2.Z}");
+                Debug.WriteLine($"{debug3.X}, {debug3.Y}, {debug3.Z}, {debug4.X}, {debug4.Y}, {debug4.Z}");
             }
         }
 
@@ -276,12 +285,12 @@ namespace GISControlWPFGL2
             if (e.Delta < 0)
             {
                 posDelta *= 1.1F;
-                if(posDelta.Length > Camera.MaxViewR) { posDelta /= 1.05F; }
+                if(posDelta.Length > Camera.MaxViewR) { posDelta /= Camera.ZoomFactor; }
             }
             else
             {
                 posDelta /= 1.1F;
-                if (posDelta.Length < Camera.MinViewR) { posDelta *= 1.05F; }
+                if (posDelta.Length < Camera.MinViewR) { posDelta *= Camera.ZoomFactor; }
             }
             camera.UpdateCamera(posDelta + posSurf);
         }
