@@ -45,6 +45,17 @@ namespace GISControlWPFGL2
         {
             return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, MinViewR, MaxViewR);
         }
+        public Matrix4d GetViewMatrixD()
+        {
+            var positionD = (Vector3d)Position;
+            var frontD = (Vector3d)_front;
+            var upD = (Vector3d)_up;
+            return Matrix4d.LookAt(positionD, positionD + frontD, upD);
+        }
+        public Matrix4d GetProjectionMatrixD()
+        {
+            return Matrix4d.CreatePerspectiveFieldOfView(_fov, AspectRatio, MinViewR, MaxViewR);
+        }
         public void UpdateCamera(Vector3 NewPosition)
         {
             Position = NewPosition;

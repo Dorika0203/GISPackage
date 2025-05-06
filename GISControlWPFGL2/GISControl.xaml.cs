@@ -101,8 +101,10 @@ namespace GISControlWPFGL2
             #endregion
 
             // 지도(.shp) 읽기 및 ECEF 변환
-            foreach (string file in Directory.EnumerateFiles("./shp", "*_0.shp", SearchOption.AllDirectories))
+            foreach (string file in Directory.EnumerateFiles("./shp", "*.shp", SearchOption.AllDirectories))
             {
+                if (!file.EndsWith("_0.shp")) continue;
+                //if (!file.EndsWith("_0.shp") && !file.EndsWith("_1.shp")) continue;
                 Shapefile shapefile = new(file);
                 foreach (Shape shape in shapefile)
                 {
@@ -244,8 +246,16 @@ namespace GISControlWPFGL2
                 var debug3 = camera.Position;
                 var debug4 = (Vector3d)(GeodeticConverter.ECEFtoLLA(camera.Position));
 
-                //Debug.WriteLine($"{debug1.X}, {debug1.Y}, {debug1.Z}, {debug2.X}, {debug2.Y}, {debug2.Z}");
-                Debug.WriteLine($"{debug3.X}, {debug3.Y}, {debug3.Z}, {debug4.X}, {debug4.Y}, {debug4.Z}");
+                var seoul = new Vector4((Vector3)(Vector3d)GeodeticConverter.LLAtoECEF((37.527648, 127.019935, 0)), 1);
+                var debug5 = seoul * camera.GetViewMatrix() * camera.GetProjectionMatrix();
+                var debug6 = (debug5 / debug5.W).Xyz;
+
+                var seoulD = new Vector4d(GeodeticConverter.LLAtoECEF((37.527648, 127.019935, 0)), 1);
+                var debug7 = seoulD * camera.GetViewMatrixD() * camera.GetProjectionMatrixD();
+                var debug8 = (debug7 / debug7.W).Xyz;
+
+                //Debug.WriteLine($"{rayDirection.Normalized().X}, {rayDirection.Normalized().Y}, {rayDirection.Normalized().Z}, {debug6.X}, {debug6.Y}, {debug6.Z}");
+                Debug.WriteLine($"{debug8.X}, {debug8.Y}, {debug8.Z}, {debug6.X}, {debug6.Y}, {debug6.Z}");
             }
         }
 
