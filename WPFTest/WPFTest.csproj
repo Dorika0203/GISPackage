@@ -10,6 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="OpenTK.GLWpfControl" Version="4.3.3" />
+    <PackageReference Include="System.Data.OleDb" Version="9.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\GISControlWPFGL2\GISControlWPFGL2.csproj" />
   </ItemGroup>
 

@@ -8,13 +8,13 @@
     <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy &quot;$(SolutionDir)GISControlWPFGL2\Shader\*&quot; &quot;$(TargetDir)Shader\&quot; /E /Y /I&#xD;&#xA;xcopy &quot;$(SolutionDir)GISControlWPFGL2\shp\*&quot; &quot;$(TargetDir)shp\&quot; /E /Y /I" />
+  </Target>
+
   <ItemGroup>
     <PackageReference Include="OpenTK.GLWpfControl" Version="4.3.3" />
     <PackageReference Include="System.Data.OleDb" Version="9.0.4" />
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy &quot;$(SolutionDir)GISControlWPFGL2\Shader\*&quot; &quot;$(TargetDir)Shader\&quot; /E /Y /I&#xD;&#xA;xcopy &quot;$(SolutionDir)GISControlWPFGL2\shp\*&quot; &quot;$(TargetDir)shp\&quot; /E /Y /I" />
-  </Target>
 
 </Project>
