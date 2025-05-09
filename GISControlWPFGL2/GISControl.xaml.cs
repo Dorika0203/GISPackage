@@ -44,6 +44,7 @@ namespace GISControlWPFGL2
         private readonly int modelLocation;
         private readonly int viewLocation;
         private readonly int projLocation;
+        private readonly int viewProjLocation;
 
         private readonly Camera camera;
         private readonly List<Ring> MapRings = [];
@@ -101,7 +102,7 @@ namespace GISControlWPFGL2
             #endregion
 
             // 지도(.shp) 읽기 및 ECEF 변환
-            foreach (string file in Directory.EnumerateFiles("./shp", "*.shp", SearchOption.AllDirectories))
+            foreach (string file in Directory.EnumerateFiles("./shp/gadm41_KOR_shp", "*.shp", SearchOption.AllDirectories))
             {
                 if (!file.EndsWith("_0.shp")) continue;
                 //if (!file.EndsWith("_0.shp") && !file.EndsWith("_1.shp")) continue;
@@ -157,9 +158,9 @@ namespace GISControlWPFGL2
             // Vertex Array Object, Vertex Buffer Object 생성
             posLocation = GL.GetAttribLocation(Program, "vPosition");
             colorLocation = GL.GetUniformLocation(Program, "uColor");
-            modelLocation = GL.GetUniformLocation(Program, "uModel");
             viewLocation = GL.GetUniformLocation(Program, "uView");
             projLocation = GL.GetUniformLocation(Program, "uProjection");
+            viewProjLocation = GL.GetUniformLocation(Program, "uViewProjection");
 
             VAO = GL.GenVertexArray();
             GL.BindVertexArray(VAO);
@@ -174,7 +175,8 @@ namespace GISControlWPFGL2
                 GL.BufferSubData(BufferTarget.ArrayBuffer, ring.memoryOffset, ring.listECEF.Count * Unsafe.SizeOf<Vector3>(), ring.listECEF.ToArray());
             }
             GL.EnableVertexAttribArray(posLocation);
-            GL.VertexAttribPointer(posLocation, 3, VertexAttribPointerType.Double, false, Unsafe.SizeOf<Vector3d>(), 0);
+            //GL.VertexAttribPointer(posLocation, 3, VertexAttribPointerType.Double, false, Unsafe.SizeOf<Vector3d>(), 0);
+            GL.VertexAttribLPointer(posLocation, 3, VertexAttribDoubleType.Double, Unsafe.SizeOf<Vector3d>(), 0);
             GL.BindVertexArray(0);
         }
 
@@ -184,12 +186,15 @@ namespace GISControlWPFGL2
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             GL.UseProgram(Program);
 
-            Matrix4d ModelMatrix = Matrix4d.Identity;
-            GL.UniformMatrix4(modelLocation, false, ref ModelMatrix);
             Matrix4d ViewMatrix = camera.GetViewMatrix();
             GL.UniformMatrix4(viewLocation, false, ref ViewMatrix);
+
             Matrix4d ProjectionMatrix = camera.GetProjectionMatrix();
             GL.UniformMatrix4(projLocation, false, ref ProjectionMatrix);
+
+            Matrix4d ViewProjectionMatrix = ViewMatrix * ProjectionMatrix;
+            GL.UniformMatrix4(viewProjLocation, false, ref ViewProjectionMatrix);
+
             GL.Uniform4(colorLocation, Color4.Red);
 
             GL.BindVertexArray(VAO);
@@ -240,18 +245,6 @@ namespace GISControlWPFGL2
                 var cameraPosPrev = camera.Position;
                 camera.UpdateCamera(newCameraPosition);
                 camera.DragPrevSurface = surface;
-
-                var debug1 = camera.Position - cameraPosPrev;
-                var debug2 = (Vector3d)(GeodeticConverter.ECEFtoLLA(camera.Position) - (Vector3d)GeodeticConverter.ECEFtoLLA(cameraPosPrev));
-                var debug3 = camera.Position;
-                var debug4 = (Vector3d)(GeodeticConverter.ECEFtoLLA(camera.Position));
-
-                var seoul = new Vector4d(GeodeticConverter.LLAtoECEF((37.527648, 127.019935, 0)), 1);
-                var debug5 = seoul * camera.GetViewMatrix() * camera.GetProjectionMatrix();
-                var debug6 = (debug5 / debug5.W).Xyz;
-
-                //Debug.WriteLine($"{rayDirection.Normalized().X}, {rayDirection.Normalized().Y}, {rayDirection.Normalized().Z}, {debug6.X}, {debug6.Y}, {debug6.Z}");
-                Debug.WriteLine($"{debug6.X}, {debug6.Y}, {debug6.Z}");
             }
         }
 
@@ -273,6 +266,31 @@ namespace GISControlWPFGL2
             camera.DragStartPosition = camera.Position;
             camera.DragPrevSurface = (Vector3)surface;
 
+            // 디버깅용
+            //List<Vector3> debugList;
+            foreach(var ring in MapRings)
+            {
+                foreach (var ecef in ring.listECEF)
+                {
+                    var pos = new Vector4d(ecef, 1);
+                    var debug5 = pos * camera.GetViewMatrix() * camera.GetProjectionMatrix();
+                    var debug6 = (debug5 / debug5.W).Xyz;
+                    var debug7 = new Vector4((float)debug5.X, (float)debug5.Y, (float)debug5.Z, (float)debug5.W);
+                    var debug8 = (debug7 / debug7.W).Xyz;
+                    var debug9 = debug6 - (Vector3d)debug8;
+
+                    //if(double.Abs(debug9.X) > 1e-7 || double.Abs(debug9.Y) > 1e-7 || double.Abs(debug9.Z) > 1e-7)
+                    //{
+                    //    Debug.WriteLine($"{debug9}");
+                    //}
+                    //Debug.WriteLine($"{debug8}");
+                    if (float.Abs(debug8.X) < 1 && float.Abs(debug8.Y) < 1 && float.Abs(debug8.Z) < 1)
+                    {
+                        //Debug.WriteLine($"{debug8}");
+                    }
+                }
+            }
+            Debug.WriteLine("DONE");
         }
 
         private void OpenTKControl_MouseLeftButtonUp(object sender, System.Windows.Input.MouseButtonEventArgs e)
