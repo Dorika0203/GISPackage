@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# offline 복원용 Nuget Package
+!offline-package
+!offline-package/**
