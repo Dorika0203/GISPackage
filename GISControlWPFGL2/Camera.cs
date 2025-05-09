@@ -1,67 +1,54 @@
 ﻿using OpenTK.Mathematics;
-using System.Diagnostics;
-using System.Windows;
 
 namespace GISControlWPFGL2
 {
     public class Camera
     {
-        public Camera(Vector3 position)
+        public Camera(Vector3d position)
         {
             UpdateCamera(position);
         }
 
-        private Vector3 _front = -Vector3.UnitZ;
-        private Vector3 _up = Vector3.UnitY;
-        private Vector3 _right = Vector3.UnitX;
-        private float _fov = MathHelper.PiOver2;
+        private Vector3d _front = -Vector3d.UnitZ;
+        private Vector3d _up = Vector3d.UnitY;
+        private Vector3d _right = Vector3d.UnitX;
+        private double _fov = MathHelper.PiOver2;
 
-        public Vector3 Position { get; set; } = Vector3.UnitZ * 10;
-        public float AspectRatio { get; set; } = 1.0F;
-        public Vector3 Front => _front;
-        public Vector3 Up => _up;
-        public Vector3 Right => _right;
-        public float Fov
+        public Vector3d Position { get; set; } = Vector3d.UnitZ * 10;
+        public double AspectRatio { get; set; } = 1.0;
+        public Vector3d Front => _front;
+        public Vector3d Up => _up;
+        public Vector3d Right => _right;
+        public double Fov
         {
             get => MathHelper.RadiansToDegrees(_fov);
             set
             {
-                var angle = MathHelper.Clamp(value, 1f, 90f);
+                var angle = MathHelper.Clamp(value, 1, 90);
                 _fov = MathHelper.DegreesToRadians(angle);
             }
         }
-        public const float ZoomFactor = 1.1F;
-        public const float MinViewR = 1000.0F;
-        public const float MaxViewR = 10000000.0F;
-        public Vector3 DragStartPosition = Vector3.Zero;
-        public Matrix4 DragStartVPMatrix = Matrix4.Zero;
-        public Vector3 DragPrevSurface = Vector3.Zero;
+        public const double ZoomFactor = 1.1;
+        public const double MinViewR = 1000.0;
+        public const double MaxViewR = 10000000.0;
+        public Vector3d DragStartPosition = Vector3d.Zero;
+        public Matrix4d DragStartVPMatrix = Matrix4d.Identity;
+        public Vector3d DragPrevSurface = Vector3d.Zero;
 
-        public Matrix4 GetViewMatrix()
+        public Matrix4d GetViewMatrix()
         {
-            return Matrix4.LookAt(Position, Position + _front, _up);
+            return Matrix4d.LookAt(Position, Position + _front, _up);
         }
-        public Matrix4 GetProjectionMatrix()
-        {
-            return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, MinViewR, MaxViewR);
-        }
-        public Matrix4d GetViewMatrixD()
-        {
-            var positionD = (Vector3d)Position;
-            var frontD = (Vector3d)_front;
-            var upD = (Vector3d)_up;
-            return Matrix4d.LookAt(positionD, positionD + frontD, upD);
-        }
-        public Matrix4d GetProjectionMatrixD()
+        public Matrix4d GetProjectionMatrix()
         {
             return Matrix4d.CreatePerspectiveFieldOfView(_fov, AspectRatio, MinViewR, MaxViewR);
         }
-        public void UpdateCamera(Vector3 NewPosition)
+        public void UpdateCamera(Vector3d NewPosition)
         {
             Position = NewPosition;
-            _front = Vector3.Normalize(-Position);
-            _right = Vector3.Normalize(Vector3.Cross(_front, Vector3.UnitZ));
-            _up = Vector3.Normalize(Vector3.Cross(_right, _front));
+            _front = Vector3d.Normalize(-Position);
+            _right = Vector3d.Normalize(Vector3d.Cross(_front, Vector3d.UnitZ));
+            _up = Vector3d.Normalize(Vector3d.Cross(_right, _front));
         }
     }
 }

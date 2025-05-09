@@ -1,12 +1,13 @@
-﻿#version 330 core
+﻿#version 410 core
 
-in vec3 vPosition;
+in dvec3 vPosition;
 
-uniform mat4 uModel;
-uniform mat4 uView;
-uniform mat4 uProjection;
+uniform dmat4 uModel;
+uniform dmat4 uView;
+uniform dmat4 uProjection;
 
 void main(void)
 {
-    gl_Position = uProjection * uView * uModel * vec4(vPosition, 1.0);
+    dvec4 pos = uProjection * uView * uModel * dvec4(vPosition, 1.0);
+    gl_Position = vec4(pos);
 }

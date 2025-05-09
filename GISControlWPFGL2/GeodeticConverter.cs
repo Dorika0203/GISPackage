@@ -81,7 +81,7 @@ namespace GISControlWPFGL2
             // 먼저 만나는 점을 획득한다. 카메라에서 레이저가 나가서 지표면과 처음 닿은 지점이 지도 위치임. 더 뒤에 있는 해는 뚫고 나간 곳임
             double t = Math.Min(t1, t2);
             if (t < 0) return Vector3d.Zero;
-            return cameraPos + (float)t * direction;
+            return cameraPos + t * direction;
         }
     }
 }
